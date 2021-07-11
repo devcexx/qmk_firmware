@@ -128,6 +128,20 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 //SSD1306 OLED update loop, make sure to enable OLED_DRIVER_ENABLE=yes in rules.mk
 #ifdef OLED_DRIVER_ENABLE
 
+void keyboard_post_init_kb(void) {
+  oled_clear();
+  oled_render();
+
+  // For some reason at this point a render is only writing a text row
+  // at once, so I'm just assuming that and clearing and render that
+  // text like 20 times.
+  for(int i = 0; i < 20; i++) {
+    oled_set_cursor(0, 0);
+    oled_write_ln_P(PSTR("USB?"), false);
+    oled_render();
+  }
+}
+
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
     if (is_keyboard_master()) {
         return OLED_ROTATION_270;
