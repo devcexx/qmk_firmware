@@ -24,8 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define VENDOR_ID       0x7983
 #define PRODUCT_ID      0x4C4C // "LL"
 #define DEVICE_VER      0x0100
-#define MANUFACTURER    Keycapsss
-#define PRODUCT         Lily58L
+#define MANUFACTURER    devcexx
+#define PRODUCT         FluffyKBD
 
 /* key matrix size */
 // Rows are doubled-up
@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MATRIX_COL_PINS { F6, F7, B1, B3, B2, B6 }
 
 /* Set 0 if debouncing isn't needed */
-#define DEBOUNCE 5
+#define DEBOUNCE 40
 
 #define SOFT_SERIAL_PIN D2
 

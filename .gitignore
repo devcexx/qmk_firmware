@@ -7,6 +7,13 @@
 # Build artifacts
 .clang_complete
 .build/
+.cache/
+compile_commands.json
+.history/
+.dep
+*.o
+*.bin
+*.eep
 *.elf
 *.log
 *.lss
