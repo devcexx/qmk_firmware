@@ -265,7 +265,12 @@ void render_status_main(void) {
     oled_write_P(PSTR("-----"), false);
     // Show modifier status
     render_mod_status(get_mods());
-    // Add a empty line
+
+    if (keymap_config.nkro) {
+      oled_write_P(PSTR("NKRO "), false);
+    } else {
+      oled_write_P(PSTR("     "), false);
+    }
     oled_write_P(PSTR("-----"), false);
     render_keylogger_status();
 }
