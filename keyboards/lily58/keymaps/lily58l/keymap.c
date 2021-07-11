@@ -299,10 +299,19 @@ void oled_task_user(void) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+#    if defined(CONSOLE_ENABLE)
+  if (keycode < 60) {
     if (record->event.pressed) {
-        add_keylog(keycode);
+      dprintf("%lu|press|%c\n", timer_read32(), code_to_name[keycode]);
+    } else {
+      dprintf("%lu|release|%c\n", timer_read32(), code_to_name[keycode]);
     }
-    return true;
+  }
+#    endif
+  if (record->event.pressed) {
+    add_keylog(keycode);
+  }
+  return true;
 }
 #endif // OLED_DRIVER_ENABLE
 
