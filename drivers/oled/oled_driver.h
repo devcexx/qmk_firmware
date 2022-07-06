@@ -287,6 +287,10 @@ void oled_task(void);
 // Called at the start of oled_task, weak function overridable by the user
 void oled_task_user(void);
 
+// Equivalent to oled_task, but fired when USB is suspended.
+void oled_usb_suspend_task(void);
+void oled_usb_suspend_task_user(void);
+
 // Set the specific 8 lines rows of the screen to scroll.
 // 0 is the default for start, and 7 for end, which is the entire
 // height of the screen.  For 128x32 screens, rows 4-7 are not used.

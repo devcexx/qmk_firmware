@@ -749,3 +749,6 @@ void oled_task(void) {
 }
 
 __attribute__((weak)) void oled_task_user(void) {}
+
+void oled_usb_suspend_task(void) {}
+__attribute__((weak)) void oled_usb_suspend_task_user(void) {}

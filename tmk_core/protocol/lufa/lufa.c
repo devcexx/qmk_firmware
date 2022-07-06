@@ -36,6 +36,7 @@
   this software.
 */
 
+#include "oled_driver.h"
 #include "report.h"
 #include "host.h"
 #include "host_driver.h"
@@ -1062,6 +1063,9 @@ int main(void) {
 #if !defined(NO_USB_STARTUP_CHECK)
         if (USB_DeviceState == DEVICE_STATE_Suspended) {
             print("[s]");
+#ifdef OLED_DRIVER_ENABLE
+	    oled_usb_suspend_task_user();
+#endif
             while (USB_DeviceState == DEVICE_STATE_Suspended) {
                 suspend_power_down();
                 if (USB_Device_RemoteWakeupEnabled && suspend_wakeup_condition()) {

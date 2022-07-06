@@ -16,6 +16,7 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
 
+#include "oled_driver.h"
 #include QMK_KEYBOARD_H
 
 extern uint8_t is_master;
@@ -129,6 +130,8 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 #ifdef OLED_DRIVER_ENABLE
 
 void keyboard_post_init_kb(void) {
+
+  rgblight_mode_noeeprom(RGBLIGHT_MODE_RAINBOW_MOOD);
   oled_clear();
   oled_render();
 
@@ -194,6 +197,7 @@ void render_lily58_logo(void) {
 char     keylog_str[KEYLOG_LEN] = {};
 uint8_t  keylogs_str_idx        = 0;
 uint16_t log_timer              = 0;
+bool     known_suspended        = false;
 
 const char code_to_name[60] = {
     ' ', ' ', ' ', ' ', 'a', 'b', 'c', 'd', 'e', 'f',
@@ -290,6 +294,7 @@ void render_status_main(void) {
 }
 
 void oled_task_user(void) {
+  known_suspended = false;
   update_log();
   if (is_keyboard_master()) {
     render_status_main();  // Renders the current keyboard state (layer, lock, caps, scroll, etc)
@@ -312,6 +317,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     add_keylog(keycode);
   }
   return true;
+}
+
+void oled_usb_suspend_task_user() {
+  oled_clear();
+  for(int i = 0; i < 20; i++) {
+    oled_set_cursor(0, 0);
+    oled_write_P(PSTR("Zzz.."), false);
+    oled_render();
+  }
 }
 #endif // OLED_DRIVER_ENABLE
 
