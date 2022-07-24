@@ -26,14 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // #define MASTER_RIGHT
 // #define EE_HANDS
 
-#ifdef RGBLIGHT_ENABLE
-#    define RGBLIGHT_ANIMATIONS
-#    define RGBLIGHT_HUE_STEP 6 // number of steps to cycle through the hue by
-#    define RGBLIGHT_SAT_STEP 6 // number of steps to increment the saturation by
-#    define RGBLIGHT_VAL_STEP 6 // number of steps to increment the brightness by
-#    define RGBLIGHT_SLEEP //  the RGB lighting will be switched off when the host goes to sleep
-#endif
-
 // If you are using an Elite C rev3 on the slave side, uncomment the lines below:
 // #define SPLIT_USB_DETECT
 // #define NO_USB_STARTUP_CHECK

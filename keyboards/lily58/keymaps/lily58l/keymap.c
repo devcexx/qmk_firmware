@@ -130,8 +130,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 #ifdef OLED_DRIVER_ENABLE
 
 void keyboard_post_init_kb(void) {
-
-  rgblight_mode_noeeprom(RGBLIGHT_MODE_RAINBOW_MOOD);
+  // debug_enable = true;
   oled_clear();
   oled_render();
 
@@ -143,6 +142,11 @@ void keyboard_post_init_kb(void) {
     oled_write_ln_P(PSTR("USB?"), false);
     oled_render();
   }
+
+  for (int i = 0; i < RGBLED_NUM / 2; i++) {
+    setrgb(0, 0, 0, &led[i]);
+  }
+  ws2812_setleds(led, RGBLED_NUM / 2);
 }
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
@@ -303,6 +307,102 @@ void oled_task_user(void) {
   }
 }
 
+struct active_led {
+  uint16_t start_time;
+  uint8_t hue;
+};
+
+# define LED_DIM_MS 500
+# define DELAY_PER_LED_UPDATE 16  // 60 fps
+struct active_led active_leds[RGBLED_NUM / 2] = {0};
+uint16_t          last_rgb_update             = 0;
+bool is_capslock_set = false;
+
+void keyboard_post_task(void) {
+  bool rgb_changed = false;
+
+  if (timer_elapsed(last_rgb_update) < DELAY_PER_LED_UPDATE) {
+    return;
+  }
+
+
+  last_rgb_update = timer_read();
+  for (int i = 0; i < RGBLED_NUM / 2; i++) {
+    if (is_capslock_set && (i == 31 || i == 32))
+      continue; // Don't change caps lock leds when is it enabled.
+
+    struct active_led* active = &active_leds[i];
+    if (active->start_time == 0) continue;
+
+    uint16_t elapsed = timer_elapsed(active->start_time);
+    if (elapsed > LED_DIM_MS) {
+      active->start_time = 0;
+      setrgb(0, 0, 0, &led[i]);
+    } else {
+      sethsv_raw(active->hue, 255, ((uint32_t)(LED_DIM_MS - elapsed) * RGBLIGHT_LIMIT_VAL) / LED_DIM_MS, &led[i]);
+    }
+    rgb_changed = true;
+  }
+
+  led_t keylock = host_keyboard_led_state();
+  if (keylock.caps_lock != is_capslock_set) {
+    is_capslock_set = keylock.caps_lock;
+    rgb_changed = true;
+    if (keylock.caps_lock) {
+      setrgb(255, 255, 255, &led[31]);
+      setrgb(255, 255, 255, &led[32]);
+    } else {
+      setrgb(0, 0, 0, &led[31]);
+      setrgb(0, 0, 0, &led[32]);
+      active_leds[31].start_time = 0;
+      active_leds[32].start_time = 0;
+    }
+  }
+
+
+  if (rgb_changed) {
+    ws2812_setleds(&led[0], RGBLED_NUM / 2);
+  }
+}
+
+void pre_process_record_user(keyevent_t *event) {
+  int row = event->key.row;
+  int col = event->key.col;
+
+  if ((is_keyboard_left() && row >= 5) || (!is_keyboard_left() && row < 5)) {
+    return;
+  }
+
+  if (!is_keyboard_left()) {
+    row -= 5;
+  }
+
+  int led_index;
+  if (row % 2 == 0) {
+    led_index = 6 + row * 6 + (5 - col);
+  } else {
+    led_index = 6 + row * 6 + col;
+  }
+
+  if (led_index < RGBLED_NUM / 2) {
+    if (event->pressed && (!is_capslock_set || (led_index != 31 && led_index != 32))) {
+      // When pressed, the HSV of the key is randomly set, and
+      // written to the active_leds array, but the start_time is
+      // kept to zero, so the rgb updater process doesn't change it
+      // (yet) and is it kept on until the user unpresses it.
+      struct active_led l = { 0, rand() % 256 };
+      active_leds[led_index] = l;
+      sethsv(l.hue, 255, 255, &led[led_index]);
+      ws2812_setleds(&led[0], RGBLED_NUM / 2);
+    } else {
+      // When unpressed, the start_time of the previously set
+      // active_leds is set, and the timer to start dimming it
+      // starts.
+      active_leds[led_index].start_time = timer_read();
+    }
+  }
+
+}
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #    if defined(CONSOLE_ENABLE)
   if (keycode < 60) {

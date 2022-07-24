@@ -280,6 +280,11 @@ __attribute__((weak)) void housekeeping_task_kb(void) {}
  */
 __attribute__((weak)) void housekeeping_task_user(void) {}
 
+
+__attribute__((weak)) void keyboard_post_task(void) {}
+
+__attribute__((weak)) void pre_process_record_user(keyevent_t* event) {}
+
 /** \brief housekeeping_task
  *
  * Invokes hooks for executing code after QMK is done after each loop iteration.
@@ -294,6 +299,7 @@ void housekeeping_task(void) {
  * FIXME: needs doc
  */
 void keyboard_init(void) {
+    eeconfig_disable();
     timer_init();
     sync_timer_init();
     matrix_init();
@@ -319,7 +325,7 @@ void keyboard_init(void) {
     backlight_init();
 #endif
 #ifdef RGBLIGHT_ENABLE
-    rgblight_init();
+    //    rgblight_init();
 #endif
 #ifdef ENCODER_ENABLE
     encoder_init();
@@ -399,10 +405,16 @@ void keyboard_task(void) {
             matrix_row_t col_mask = 1;
             for (uint8_t c = 0; c < MATRIX_COLS; c++, col_mask <<= 1) {
                 if (matrix_change & col_mask) {
+		  keyevent_t e = {
+		    .key = (keypos_t){.row = r, .col = c}, .pressed = (matrix_row & col_mask), .time = (timer_read() | 1) /* time should not be 0 */
+		  };
+
+		  if (!IS_NOEVENT(e)) {
+		    pre_process_record_user(&e);
+		  }
+
                     if (should_process_keypress()) {
-                        action_exec((keyevent_t){
-                            .key = (keypos_t){.row = r, .col = c}, .pressed = (matrix_row & col_mask), .time = (timer_read() | 1) /* time should not be 0 */
-                        });
+                        action_exec(e);
                     }
                     // record a processed key
                     matrix_prev[r] ^= col_mask;
@@ -428,6 +440,7 @@ void keyboard_task(void) {
 
 MATRIX_LOOP_END:
 
+    keyboard_post_task();
 #ifdef DEBUG_MATRIX_SCAN_RATE
     matrix_scan_perf_task();
 #endif
