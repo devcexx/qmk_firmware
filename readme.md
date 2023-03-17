@@ -10,3 +10,8 @@ most likely no changes will be added to any keyboard except that one.
 All the changes done on this repo respect the original one are tracked
 on the `dx-master`, while the `master` branch will be kept in sync
 with the original one from the QMK repo.
+
+Building:
+
+ - `make lily58/light:lily58l:dfu-split-left` for left side.
+ - `make lily58/light:lily58l:dfu-split-right` for right side.
